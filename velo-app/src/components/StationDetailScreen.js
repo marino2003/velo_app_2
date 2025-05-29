@@ -5,7 +5,7 @@ export default function StationDetailScreen({ station, onBack }) {
   const [refreshTime, setRefreshTime] = useState(new Date());
 
   useEffect(() => {
-    // Auto-refresh every 30 seconds
+    // Auto-refresh 30 seconde
     const interval = setInterval(() => {
       setRefreshTime(new Date());
     }, 30000);
@@ -154,33 +154,6 @@ export default function StationDetailScreen({ station, onBack }) {
                 </div>
               </div>
             </div>
-
-            {/* Location Info */}
-            {(station.latitude && station.longitude) && (
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <span className="text-2xl">📍</span>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-slate-800">Locatie</h3>
-                    <p className="text-sm text-slate-600">GPS coördinaten</p>
-                  </div>
-                </div>
-                <div className="bg-slate-50 rounded-lg p-3">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-slate-500">Lat:</span>
-                      <div className="font-mono text-slate-700">{station.latitude.toFixed(6)}</div>
-                    </div>
-                    <div>
-                      <span className="text-slate-500">Lng:</span>
-                      <div className="font-mono text-slate-700">{station.longitude.toFixed(6)}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
           </div>
 

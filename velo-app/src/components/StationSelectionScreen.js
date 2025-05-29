@@ -1,8 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getNetworksByCity, getNetworkStations } from '../services/cityBikesApi';
+import { getTargetStations } from '../services/cityBikesApi';
 
-export default function StationSelectionScreen({ onComplete }) {
+export default function StationSelectionScreen({ onComplete, onStationDetail }) {
   const [loading, setLoading] = useState(true);
   const [stations, setStations] = useState([]);
   const [selectedDeparture, setSelectedDeparture] = useState(null);
@@ -11,36 +11,29 @@ export default function StationSelectionScreen({ onComplete }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadAntwerpStations();
+    loadTargetStations();
   }, []);
 
-  const loadAntwerpStations = async () => {
+  const loadTargetStations = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Find networks in Antwerp
-      const networks = await getNetworksByCity('antwerp');
-      console.log('Antwerp networks found:', networks);
-
-      if (networks.length === 0) {
-        // Try alternative names for Antwerp
-        const alternativeNetworks = await getNetworksByCity('antwerpen');
-        if (alternativeNetworks.length === 0) {
-          throw new Error('Geen bike sharing netwerken gevonden in Antwerpen');
-        }
-        networks.push(...alternativeNetworks);
-      }
-
-      // Get stations for the first available network
-      const networkId = networks[0].id;
-      const stationsData = await getNetworkStations(networkId);
+      console.log('Searching for specific target stations...');
       
-      setStations(stationsData);
-      console.log('Stations loaded:', stationsData.length);
+      const targetStations = await getTargetStations();
+      
+      if (targetStations.length === 0) {
+        throw new Error('De gewenste stations (Antwerpen-Centraal, Opera, Groenplaats) zijn niet beschikbaar in de CityBikes API. Deze stations worden momenteel niet ondersteund in de database.');
+      }
+      
+      setStations(targetStations);
+      console.log('Target stations loaded:', targetStations.length);
+      console.log('Found stations:', targetStations.map(s => `${s.name} (matches: ${s.targetName})`));
+      
     } catch (err) {
-      console.error('Error loading stations:', err);
-      setError(err.message);
+      console.error('Error loading target stations:', err);
+      setError(`${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -84,7 +77,8 @@ export default function StationSelectionScreen({ onComplete }) {
       <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">🚴‍♂️</div>
-          <p className="text-slate-600">Stations laden...</p>
+          <p className="text-slate-600">Zoeken naar specifieke stations...</p>
+          <p className="text-xs text-slate-500 mt-2">Antwerpen-Centraal, Opera, Groenplaats</p>
         </div>
       </div>
     );
@@ -98,7 +92,7 @@ export default function StationSelectionScreen({ onComplete }) {
           <h1 className="text-2xl font-bold mb-3 text-slate-800">Fout</h1>
           <p className="text-slate-600 mb-8">{error}</p>
           <button 
-            onClick={loadAntwerpStations}
+            onClick={loadTargetStations}
             className="bg-gradient-to-r from-orange-600 to-amber-600 text-white px-8 py-4 rounded-xl font-medium shadow-lg w-full"
           >
             Opnieuw proberen
@@ -163,18 +157,48 @@ export default function StationSelectionScreen({ onComplete }) {
                 : 'Waar wil je eindigen?'
               }
             </p>
+            <p className="text-xs text-slate-500 mt-2">
+              Specifieke Antwerpen stations - Live data van CityBikes API
+            </p>
           </div>
 
-          {/* Selected stations summary */}
-          {selectedDeparture && (
-            <div className="mb-6 p-4 bg-white rounded-lg border border-green-200">
-              <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm text-slate-500">Vertrek</p>
-                  <p className="font-medium text-slate-800">{selectedDeparture.name}</p>
+          {/* Gekozen stations overzicht */}
+          {(selectedDeparture || selectedDestination) && (
+            <div className="mb-6 space-y-3">
+              {selectedDeparture && (
+                <div className="p-4 bg-white rounded-lg border border-green-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-500">Vertrekstation</p>
+                      <p className="font-medium text-slate-800">{selectedDeparture.name}</p>
+                    </div>
+                    <span className="text-xl">🚀</span>
+                  </div>
                 </div>
-              </div>
+              )}
+              
+              {selectedDestination && (
+                <div className="p-4 bg-white rounded-lg border border-blue-200">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm text-slate-500">Eindstation</p>
+                      <p className="font-medium text-slate-800">{selectedDestination.name}</p>
+                    </div>
+                    <span className="text-xl">🎯</span>
+                  </div>
+                </div>
+              )}
+              
+              {selectedDeparture && selectedDestination && (
+                <div className="text-center py-2">
+                  <div className="inline-flex items-center space-x-2 text-sm text-slate-600 bg-orange-50 px-4 py-2 rounded-lg">
+                    <span>✓</span>
+                    <span>Route compleet! Klik op &apos;Doorgaan&apos;</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -183,11 +207,13 @@ export default function StationSelectionScreen({ onComplete }) {
             {getAvailableStations().map((station) => (
               <div
                 key={station.id}
-                onClick={() => handleStationSelect(station)}
-                className="bg-white rounded-lg p-4 shadow-sm border border-orange-100 cursor-pointer hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg p-4 shadow-sm border border-orange-100"
               >
                 <div className="flex justify-between items-start">
-                  <div className="flex-1">
+                  <div 
+                    className="flex-1 cursor-pointer"
+                    onClick={() => handleStationSelect(station)}
+                  >
                     <h3 className="font-medium text-slate-800 mb-1">{station.name}</h3>
                     <div className="flex items-center space-x-4 text-sm text-slate-600">
                       <div className="flex items-center space-x-1">
@@ -200,8 +226,22 @@ export default function StationSelectionScreen({ onComplete }) {
                       </div>
                     </div>
                   </div>
-                  <div className="text-orange-500">
-                    →
+                  <div className="flex items-center space-x-2 ml-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onStationDetail?.(station);
+                      }}
+                      className="px-3 py-1 text-xs bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                    >
+                      Details
+                    </button>
+                    <div 
+                      className="text-orange-500 cursor-pointer"
+                      onClick={() => handleStationSelect(station)}
+                    >
+                      →
+                    </div>
                   </div>
                 </div>
               </div>

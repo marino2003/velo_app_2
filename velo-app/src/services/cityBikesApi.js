@@ -1,19 +1,28 @@
 /**
  * CityBikes API Service
- * Documentation: http://api.citybik.es/v2/
+ * Documentation: https://api.citybik.es/v2/
  */
 
-const BASE_URL = 'http://api.citybik.es/v2';
+const BASE_URL = 'https://api.citybik.es/v2';
+
+// De stations die we zoeken
+const TARGET_STATIONS = [
+  'Antwerpen-Centraal',
+  'Opera', 
+  'Groenplaats'
+];
 
 /**
- * Generic API fetch function with error handling
+ * Fetch
  */
 async function apiRequest(endpoint, options = {}) {
   try {
     const url = `${BASE_URL}${endpoint}`;
     const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
       headers: {
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...options.headers,
       },
       ...options,
@@ -27,6 +36,9 @@ async function apiRequest(endpoint, options = {}) {
     return data;
   } catch (error) {
     console.error('CityBikes API Error:', error);
+    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      throw new Error('Netwerkfout: Kan geen verbinding maken met de API. Controleer je internetverbinding.');
+    }
     throw error;
   }
 }
@@ -42,10 +54,10 @@ export async function getAllNetworks(fields = null) {
 }
 
 /**
- * Get specific network details including stations and vehicles
- * @param {string} networkId - Network identifier (e.g., 'velib', 'divvy')
- * @param {string[]} fields - Optional fields to filter
- * @returns {Promise<Object>} Network details with stations
+ * 
+ * @param {string} networkId - 
+ * @param {string[]} fields - 
+ * @returns {Promise<Object>} 
  */
 export async function getNetworkById(networkId, fields = null) {
   const endpoint = fields 
@@ -65,16 +77,6 @@ export async function getNetworkStations(networkId) {
 }
 
 /**
- * Get only vehicles data for a network (if available)
- * @param {string} networkId - Network identifier
- * @returns {Promise<Array>} Array of vehicles
- */
-export async function getNetworkVehicles(networkId) {
-  const data = await apiRequest(`/networks/${networkId}?fields=vehicles`);
-  return data.network.vehicles || [];
-}
-
-/**
  * Find networks by city name
  * @param {string} cityName - City to search for
  * @returns {Promise<Array>} Array of matching networks
@@ -88,7 +90,7 @@ export async function getNetworksByCity(cityName) {
 
 /**
  * Find networks by country code
- * @param {string} countryCode - Country code (e.g., 'US', 'FR', 'NL')
+ * @param {string} countryCode - Country code (e.g., 'BE', 'NL', 'FR')
  * @returns {Promise<Array>} Array of matching networks
  */
 export async function getNetworksByCountry(countryCode) {
@@ -99,117 +101,79 @@ export async function getNetworksByCountry(countryCode) {
 }
 
 /**
- * Find available bikes near a location
- * @param {string} networkId - Network identifier
- * @param {number} latitude - Latitude coordinate
- * @param {number} longitude - Longitude coordinate
- * @param {number} radiusKm - Search radius in kilometers (default: 1)
- * @returns {Promise<Array>} Array of nearby stations with available bikes
+ * Find the specific target stations across all networks
+ * @returns {Promise<Array>} Array of found stations with network info
  */
-export async function findNearbyBikes(networkId, latitude, longitude, radiusKm = 1) {
-  const stations = await getNetworkStations(networkId);
+export async function getTargetStations() {
+  console.log('Zoeken naar stations:', TARGET_STATIONS);
   
-  return stations.filter(station => {
-    if (station.free_bikes <= 0) return false;
+  try {
+    // Stap 1: Haal alle netwerken op
+    const networksData = await getAllNetworks(['id', 'name', 'location']);
+    console.log(`${networksData.networks.length} netwerken gevonden`);
     
-    const distance = calculateDistance(
-      latitude, longitude,
-      station.latitude, station.longitude
-    );
+    const foundStations = [];
     
-    return distance <= radiusKm;
-  }).sort((a, b) => {
-    // Sort by distance (closest first)
-    const distA = calculateDistance(latitude, longitude, a.latitude, a.longitude);
-    const distB = calculateDistance(latitude, longitude, b.latitude, b.longitude);
-    return distA - distB;
-  });
-}
-
-/**
- * Find empty docking stations near a location
- * @param {string} networkId - Network identifier
- * @param {number} latitude - Latitude coordinate
- * @param {number} longitude - Longitude coordinate
- * @param {number} radiusKm - Search radius in kilometers (default: 1)
- * @returns {Promise<Array>} Array of nearby stations with empty slots
- */
-export async function findNearbyDocking(networkId, latitude, longitude, radiusKm = 1) {
-  const stations = await getNetworkStations(networkId);
-  
-  return stations.filter(station => {
-    if (station.empty_slots <= 0) return false;
+    // Stap 2: Doorzoek Belgische netwerken en Antwerpen netwerken
+    for (const network of networksData.networks) {
+      const networkName = network.name.toLowerCase();
+      const cityName = network.location.city.toLowerCase();
+      const countryCode = network.location.country;
+      
+      // Alleen Belgische of Antwerpen-gerelateerde netwerken bekijken
+      if (countryCode === 'BE' || 
+          cityName.includes('antwerp') || 
+          cityName.includes('antwerpen') ||
+          networkName.includes('antwerp') ||
+          networkName.includes('antwerpen')) {
+        
+        console.log(`Bekijk netwerk: ${network.name} in ${network.location.city}`);
+        
+        try {
+          const stations = await getNetworkStations(network.id);
+          console.log(`${stations.length} stations gevonden in ${network.name}`);
+          
+          // Stap 3: Check elk station tegen onze lijst
+          for (const station of stations) {
+            const stationName = station.name;
+            
+            // Zoek naar matches (gedeeltelijk of volledig)
+            const matchedTarget = TARGET_STATIONS.find(target => 
+              stationName.toLowerCase().includes(target.toLowerCase()) ||
+              target.toLowerCase().includes(stationName.toLowerCase())
+            );
+            
+            if (matchedTarget) {
+              console.log(`✓ Station gevonden: ${stationName} (past bij ${matchedTarget})`);
+              foundStations.push({
+                ...station,
+                networkId: network.id,
+                networkName: network.name,
+                city: network.location.city,
+                country: network.location.country,
+                targetName: matchedTarget
+              });
+            }
+          }
+        } catch (error) {
+          console.warn(`Kon stations niet ophalen voor ${network.name}:`, error);
+        }
+      }
+    }
     
-    const distance = calculateDistance(
-      latitude, longitude,
-      station.latitude, station.longitude
-    );
+    console.log(`Totaal gevonden stations: ${foundStations.length}`);
     
-    return distance <= radiusKm;
-  }).sort((a, b) => {
-    // Sort by distance (closest first)
-    const distA = calculateDistance(latitude, longitude, a.latitude, a.longitude);
-    const distB = calculateDistance(latitude, longitude, b.latitude, b.longitude);
-    return distA - distB;
-  });
-}
-
-/**
- * Get network statistics
- * @param {string} networkId - Network identifier
- * @returns {Promise<Object>} Network statistics
- */
-export async function getNetworkStats(networkId) {
-  const data = await getNetworkById(networkId, ['stations', 'vehicles']);
-  const stations = data.network.stations || [];
-  const vehicles = data.network.vehicles || [];
-  
-  const totalStations = stations.length;
-  const totalBikes = stations.reduce((sum, station) => sum + (station.free_bikes || 0), 0);
-  const totalSlots = stations.reduce((sum, station) => sum + (station.empty_slots || 0), 0);
-  const activeStations = stations.filter(station => station.free_bikes > 0 || station.empty_slots > 0).length;
-  
-  return {
-    networkId,
-    totalStations,
-    activeStations,
-    totalBikes,
-    totalSlots,
-    totalVehicles: vehicles.length,
-    occupancyRate: totalSlots > 0 ? ((totalBikes / (totalBikes + totalSlots)) * 100).toFixed(2) : 0,
-    lastUpdated: new Date().toISOString()
-  };
-}
-
-/**
- * Calculate distance between two coordinates using Haversine formula
- * @param {number} lat1 - Latitude 1
- * @param {number} lon1 - Longitude 1
- * @param {number} lat2 - Latitude 2
- * @param {number} lon2 - Longitude 2
- * @returns {number} Distance in kilometers
- */
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371; // Earth's radius in kilometers
-  const dLat = toRadians(lat2 - lat1);
-  const dLon = toRadians(lon2 - lon1);
-  
-  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-/**
- * Convert degrees to radians
- * @param {number} degrees - Degrees to convert
- * @returns {number} Radians
- */
-function toRadians(degrees) {
-  return degrees * (Math.PI / 180);
-}
-
-// Export utility functions as well
-export { calculateDistance, toRadians }; 
+    // Stap 4: Geef maximaal 3 stations terug
+    const result = foundStations.slice(0, 3);
+    
+    if (result.length === 0) {
+      console.warn('Geen van de gewenste stations gevonden in de API');
+    }
+    
+    return result;
+    
+  } catch (error) {
+    console.error('Fout bij zoeken naar stations:', error);
+    throw new Error('Kon de gewenste stations niet vinden in de CityBikes API');
+  }
+} 
