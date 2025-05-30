@@ -5,6 +5,7 @@ export default function ProfileCreationScreen({ onComplete }) {
   const [formData, setFormData] = useState({
     name: '',
     age: '',
+    bio: '',
     interests: [],
     cyclingStyle: ''
   });
@@ -101,6 +102,23 @@ export default function ProfileCreationScreen({ onComplete }) {
                   max="99"
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors text-slate-900"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Bio
+                </label>
+                <textarea
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  placeholder="Vertel iets over jezelf... Wat maakt jou een leuke fietsmaatje?"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors text-slate-900 resize-none"
+                  rows="3"
+                  maxLength="200"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  {formData.bio.length}/200 karakters
+                </p>
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function MatchesScreen({ matches, route, onNewRoute, onNavigate }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -7,6 +7,49 @@ export default function MatchesScreen({ matches, route, onNewRoute, onNavigate }
   const [invitesSent, setInvitesSent] = useState(new Set());
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [currentInvite, setCurrentInvite] = useState(null);
+  const [acceptedInvites, setAcceptedInvites] = useState(new Set());
+  const [pendingInvites, setPendingInvites] = useState(new Set());
+  const [recentlyAccepted, setRecentlyAccepted] = useState(null);
+  const [showAcceptanceNotification, setShowAcceptanceNotification] = useState(false);
+
+  // Simuleer match responses
+  useEffect(() => {
+    const timeouts = [];
+    
+    pendingInvites.forEach(matchId => {
+      // Random delay tussen 3-8 seconden
+      const delay = Math.random() * 5000 + 3000;
+      
+      const timeout = setTimeout(() => {
+        const match = matches.find(m => m.id === matchId);
+        if (match) {
+          // Match accepteert de uitnodiging
+          setAcceptedInvites(prev => new Set([...prev, matchId]));
+          setPendingInvites(prev => {
+            const newPending = new Set(prev);
+            newPending.delete(matchId);
+            return newPending;
+          });
+          
+          // Toon notificatie
+          setRecentlyAccepted(match);
+          setShowAcceptanceNotification(true);
+          
+          // Verberg notificatie na 5 seconden
+          setTimeout(() => {
+            setShowAcceptanceNotification(false);
+            setTimeout(() => setRecentlyAccepted(null), 300);
+          }, 5000);
+        }
+      }, delay);
+      
+      timeouts.push(timeout);
+    });
+
+    return () => {
+      timeouts.forEach(timeout => clearTimeout(timeout));
+    };
+  }, [pendingInvites, matches]);
 
   const handleNoteChange = (matchId, note) => {
     setNotes(prev => ({
@@ -27,6 +70,7 @@ export default function MatchesScreen({ matches, route, onNewRoute, onNavigate }
   const confirmInvite = () => {
     if (currentInvite) {
       setInvitesSent(prev => new Set([...prev, currentInvite.id]));
+      setPendingInvites(prev => new Set([...prev, currentInvite.id]));
       setShowInviteModal(false);
       setCurrentInvite(null);
     }
@@ -35,6 +79,41 @@ export default function MatchesScreen({ matches, route, onNewRoute, onNavigate }
   const closeModal = () => {
     setShowInviteModal(false);
     setCurrentInvite(null);
+  };
+
+  const getInviteStatus = (matchId) => {
+    if (acceptedInvites.has(matchId)) return 'accepted';
+    if (pendingInvites.has(matchId)) return 'pending';
+    if (invitesSent.has(matchId)) return 'sent';
+    return 'none';
+  };
+
+  const getInviteButtonText = (matchId) => {
+    const status = getInviteStatus(matchId);
+    switch (status) {
+      case 'accepted':
+        return { full: 'Geaccepteerd! 🎉', short: 'Geaccepteerd! 🎉' };
+      case 'pending':
+        return { full: 'Wacht op reactie...', short: 'Wachten...' };
+      case 'sent':
+        return { full: 'Uitgenodigd! ✓', short: 'Uitgenodigd ✓' };
+      default:
+        return { full: 'Samen fietsen? 🚴‍♂️', short: 'Samen? 🚴‍♂️' };
+    }
+  };
+
+  const getInviteButtonStyle = (matchId) => {
+    const status = getInviteStatus(matchId);
+    switch (status) {
+      case 'accepted':
+        return 'bg-green-600 text-white border-green-600 animate-pulse';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-700 border border-yellow-200 cursor-not-allowed';
+      case 'sent':
+        return 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed';
+      default:
+        return 'bg-orange-600 hover:bg-orange-700 text-white';
+    }
   };
 
   return (
@@ -92,6 +171,41 @@ export default function MatchesScreen({ matches, route, onNewRoute, onNavigate }
                   </p>
                 </div>
               </div>
+
+              {/* Accepted Invitations Section */}
+              {acceptedInvites.size > 0 && (
+                <div className="mb-6">
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
+                    <h3 className="text-lg font-bold text-green-800 mb-3 flex items-center">
+                      <span className="text-2xl mr-2">🚴‍♂️</span>
+                      Klaar om te fietsen!
+                    </h3>
+                    <div className="space-y-2">
+                      {matches.filter(match => acceptedInvites.has(match.id)).map(match => (
+                        <div key={`accepted-${match.id}`} className="bg-white rounded-xl p-3 border border-green-100">
+                          <div className="flex items-center space-x-3">
+                            <div className="text-2xl">{match.avatar}</div>
+                            <div className="flex-1">
+                              <p className="font-medium text-green-800">
+                                <strong>{match.name}</strong> wil samen fietsen!
+                              </p>
+                              <p className="text-xs text-green-600">
+                                Route: {route.departure.name} → {route.destination.name}
+                              </p>
+                            </div>
+                            <div className="text-green-600 text-2xl animate-bounce">✅</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 p-2 bg-green-100 rounded-lg">
+                      <p className="text-xs text-green-700 text-center">
+                        💡 Tip: Neem contact op via de app of spreek een tijd en plaats af!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {matches.map((match) => (
                 <div
@@ -152,24 +266,11 @@ export default function MatchesScreen({ matches, route, onNewRoute, onNavigate }
                       </button>
                       <button
                         onClick={() => sendCyclingInvite(match)}
-                        disabled={invitesSent.has(match.id)}
-                        className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-colors ${
-                          invitesSent.has(match.id)
-                            ? 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed'
-                            : 'bg-orange-600 hover:bg-orange-700 text-white'
-                        }`}
+                        disabled={getInviteStatus(match.id) !== 'none'}
+                        className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-colors ${getInviteButtonStyle(match.id)}`}
                       >
-                        {invitesSent.has(match.id) ? (
-                          <span>
-                            <span className="hidden sm:inline">Uitgenodigd! ✓</span>
-                            <span className="sm:hidden">Uitgenodigd ✓</span>
-                          </span>
-                        ) : (
-                          <span>
-                            <span className="hidden sm:inline">Samen fietsen? 🚴‍♂️</span>
-                            <span className="sm:hidden">Samen? 🚴‍♂️</span>
-                          </span>
-                        )}
+                        <span className="hidden sm:inline">{getInviteButtonText(match.id).full}</span>
+                        <span className="sm:hidden">{getInviteButtonText(match.id).short}</span>
                       </button>
                     </div>
                     
@@ -282,6 +383,24 @@ export default function MatchesScreen({ matches, route, onNewRoute, onNavigate }
               >
                 Verstuur uitnodiging
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Acceptance Notification */}
+      {showAcceptanceNotification && recentlyAccepted && (
+        <div className="fixed top-6 left-6 right-6 z-60 animate-slide-down">
+          <div className="bg-green-600 text-white rounded-2xl p-4 shadow-xl border border-green-500 max-w-sm mx-auto">
+            <div className="flex items-center space-x-3">
+              <div className="text-2xl">{recentlyAccepted.avatar}</div>
+              <div className="flex-1">
+                <p className="font-bold text-sm">Goed nieuws! 🎉</p>
+                <p className="text-xs opacity-90">
+                  <strong>{recentlyAccepted.name}</strong> wil graag samen fietsen!
+                </p>
+              </div>
+              <div className="text-2xl">🚴‍♂️</div>
             </div>
           </div>
         </div>
