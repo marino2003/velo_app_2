@@ -84,7 +84,7 @@ export default function ProfileCreationScreen({ onComplete }) {
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="Jouw naam"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors text-slate-900"
                 />
               </div>
               
@@ -99,7 +99,7 @@ export default function ProfileCreationScreen({ onComplete }) {
                   placeholder="25"
                   min="16"
                   max="99"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors text-slate-900"
                 />
               </div>
             </div>
