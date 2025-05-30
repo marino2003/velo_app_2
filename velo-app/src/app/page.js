@@ -162,6 +162,7 @@ export default function Home() {
             matches={matches}
             route={selectedStations}
             onNewRoute={handleNewRoute}
+            onNavigate={handleNavigate}
           />
         </ScreenWrapper>
         <NavigationBar 

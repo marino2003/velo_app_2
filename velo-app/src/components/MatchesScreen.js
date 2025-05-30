@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 
-export default function MatchesScreen({ matches, route, onNewRoute }) {
+export default function MatchesScreen({ matches, route, onNewRoute, onNavigate }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [notes, setNotes] = useState({});
   const [invitesSent, setInvitesSent] = useState(new Set());
@@ -65,146 +65,168 @@ export default function MatchesScreen({ matches, route, onNewRoute }) {
           
           {matches.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-3xl shadow-lg border border-slate-100">
-              <div className="text-6xl mb-4">😔</div>
-              <h2 className="text-xl font-bold text-slate-800 mb-2">Geen matches</h2>
-              <p className="text-slate-600">Je hebt nog geen ritmaatjes gevonden.</p>
+              <div className="text-6xl mb-4">🚴‍♂️</div>
+              <h2 className="text-xl font-bold text-slate-800 mb-2">Nog geen ritmaatjes</h2>
+              <p className="text-slate-600 mb-6 leading-relaxed">
+                Begin met swipen om mensen te vinden die jouw route en interesses delen. 
+                Iedere match brengt je dichter bij je volgende gezamenlijke fietsrit!
+              </p>
+              <button
+                onClick={() => onNavigate && onNavigate('swipe')}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl font-medium transition-colors shadow-lg"
+              >
+                Start met swipen 💕
+              </button>
             </div>
           ) : (
-            matches.map((match) => (
-              <div
-                key={match.id}
-                className="bg-white rounded-3xl p-6 shadow-lg border border-slate-100"
-              >
-                {/* Match Header */}
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="text-4xl">{match.avatar}</div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-slate-800">{match.name}, {match.age}</h3>
-                    <p className="text-sm text-slate-600">{match.cyclingStyle} • {match.timeSlot}</p>
-                  </div>
-                  <div className="text-2xl">💕</div>
-                </div>
-
-                {/* Bio */}
-                <div className="mb-4">
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    {match.bio}
+            <>
+              {/* Success message */}
+              <div className="text-center mb-6">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                  <div className="text-3xl mb-2">🎉</div>
+                  <h2 className="text-lg font-bold text-green-800 mb-1">
+                    Super! Je hebt {matches.length} ritmaatje{matches.length !== 1 ? 's' : ''} gevonden
+                  </h2>
+                  <p className="text-sm text-green-700">
+                    Stuur een &ldquo;Samen fietsen?&rdquo; uitnodiging om je volgende rit te plannen
                   </p>
                 </div>
+              </div>
 
-                {/* Shared Interests */}
-                <div className="mb-4">
-                  <p className="text-xs text-slate-500 mb-2">Interesses:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {match.interests.map((interest, index) => (
-                      <span key={index} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg border border-green-200">
-                        {interest}
-                      </span>
-                    ))}
+              {matches.map((match) => (
+                <div
+                  key={match.id}
+                  className="bg-white rounded-3xl p-6 shadow-lg border border-slate-100"
+                >
+                  {/* Match Header */}
+                  <div className="flex items-center space-x-4 mb-4">
+                    <div className="text-4xl">{match.avatar}</div>
+                    <div className="flex-1">
+                      <h3 className="font-bold text-slate-800">{match.name}, {match.age}</h3>
+                      <p className="text-sm text-slate-600">{match.cyclingStyle} • {match.timeSlot}</p>
+                    </div>
+                    <div className="text-2xl">💕</div>
                   </div>
-                </div>
 
-                {/* Personal Note */}
-                <div className="mb-4">
-                  <label className="text-xs text-slate-500 block mb-2">Persoonlijke notitie:</label>
-                  <textarea
-                    value={notes[match.id] || ''}
-                    onChange={(e) => handleNoteChange(match.id, e.target.value)}
-                    placeholder="Voeg een notitie toe over deze ritmaatje..."
-                    className="w-full text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-xl p-3 resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
-                    rows="2"
-                  />
-                </div>
+                  {/* Bio */}
+                  <div className="mb-4">
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {match.bio}
+                    </p>
+                  </div>
 
-                {/* Actions */}
-                <div className="space-y-2">
-                  {/* Primary Actions Row */}
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => sendGreeting(match)}
-                      className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-3 rounded-xl text-sm font-medium transition-colors"
-                    >
-                      <span className="hidden sm:inline">Stuur groet 👋</span>
-                      <span className="sm:hidden">Groet 👋</span>
-                    </button>
-                    <button
-                      onClick={() => sendCyclingInvite(match)}
-                      disabled={invitesSent.has(match.id)}
-                      className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-colors ${
-                        invitesSent.has(match.id)
-                          ? 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed'
-                          : 'bg-orange-600 hover:bg-orange-700 text-white'
-                      }`}
-                    >
-                      {invitesSent.has(match.id) ? (
-                        <span>
-                          <span className="hidden sm:inline">Uitgenodigd! ✓</span>
-                          <span className="sm:hidden">Uitgenodigd ✓</span>
+                  {/* Shared Interests */}
+                  <div className="mb-4">
+                    <p className="text-xs text-slate-500 mb-2">Interesses:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {match.interests.map((interest, index) => (
+                        <span key={index} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg border border-green-200">
+                          {interest}
                         </span>
-                      ) : (
-                        <span>
-                          <span className="hidden sm:inline">Samen fietsen? 🚴‍♂️</span>
-                          <span className="sm:hidden">Samen? 🚴‍♂️</span>
-                        </span>
-                      )}
-                    </button>
-                  </div>
-                  
-                  {/* Secondary Action */}
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => setSelectedMatch(selectedMatch === match.id ? null : match.id)}
-                      className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm transition-colors"
-                    >
-                      {selectedMatch === match.id ? 'Minder info' : 'Meer info'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Extended Info */}
-                {selectedMatch === match.id && (
-                  <div className="mt-4 pt-4 border-t border-slate-100">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Fietsstijl:</span>
-                        <span className="text-slate-700">{match.cyclingStyle}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Voorkeurstijd:</span>
-                        <span className="text-slate-700">{match.timeSlot}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-500">Match datum:</span>
-                        <span className="text-slate-700">{new Date().toLocaleDateString('nl-NL')}</span>
-                      </div>
+                      ))}
                     </div>
                   </div>
-                )}
-              </div>
-            ))
+
+                  {/* Personal Note */}
+                  <div className="mb-4">
+                    <label className="text-xs text-slate-500 block mb-2">Persoonlijke notitie:</label>
+                    <textarea
+                      value={notes[match.id] || ''}
+                      onChange={(e) => handleNoteChange(match.id, e.target.value)}
+                      placeholder="Voeg een notitie toe over deze ritmaatje..."
+                      className="w-full text-sm text-slate-700 bg-slate-50 border border-slate-200 rounded-xl p-3 resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-colors"
+                      rows="2"
+                    />
+                  </div>
+
+                  {/* Actions */}
+                  <div className="space-y-2">
+                    {/* Primary Actions Row */}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => sendGreeting(match)}
+                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-3 rounded-xl text-sm font-medium transition-colors"
+                      >
+                        <span className="hidden sm:inline">Stuur groet 👋</span>
+                        <span className="sm:hidden">Groet 👋</span>
+                      </button>
+                      <button
+                        onClick={() => sendCyclingInvite(match)}
+                        disabled={invitesSent.has(match.id)}
+                        className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-colors ${
+                          invitesSent.has(match.id)
+                            ? 'bg-green-100 text-green-700 border border-green-200 cursor-not-allowed'
+                            : 'bg-orange-600 hover:bg-orange-700 text-white'
+                        }`}
+                      >
+                        {invitesSent.has(match.id) ? (
+                          <span>
+                            <span className="hidden sm:inline">Uitgenodigd! ✓</span>
+                            <span className="sm:hidden">Uitgenodigd ✓</span>
+                          </span>
+                        ) : (
+                          <span>
+                            <span className="hidden sm:inline">Samen fietsen? 🚴‍♂️</span>
+                            <span className="sm:hidden">Samen? 🚴‍♂️</span>
+                          </span>
+                        )}
+                      </button>
+                    </div>
+                    
+                    {/* Secondary Action */}
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => setSelectedMatch(selectedMatch === match.id ? null : match.id)}
+                        className="px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm transition-colors"
+                      >
+                        {selectedMatch === match.id ? 'Minder info' : 'Meer info'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Extended Info */}
+                  {selectedMatch === match.id && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Fietsstijl:</span>
+                          <span className="text-slate-700">{match.cyclingStyle}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Voorkeurstijd:</span>
+                          <span className="text-slate-700">{match.timeSlot}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-500">Match datum:</span>
+                          <span className="text-slate-700">{new Date().toLocaleDateString('nl-NL')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </>
           )}
         </div>
       </div>
 
       {/* Bottom Actions */}
       <div className="p-6 bg-white shadow-sm border-t border-slate-100 space-y-3">
-        {matches.length > 0 && (
-          <div className="text-center mb-4">
-            <div className="bg-green-50 border border-green-200 rounded-xl p-3">
-              <p className="text-sm text-green-700">
-                🎉 Super! Je hebt {matches.length} potentiële ritmaatje{matches.length !== 1 ? 's' : ''} gevonden voor je route.
-              </p>
-            </div>
-          </div>
-        )}
-        
-        <div className="flex justify-center">
+        <div className="flex justify-center space-x-3">
           <button
             onClick={onNewRoute}
-            className="bg-orange-600 hover:bg-orange-700 text-white py-4 px-8 rounded-xl font-medium shadow-lg transition-colors"
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-6 rounded-xl font-medium transition-colors"
           >
-            Plan nieuwe route
+            Nieuwe route
           </button>
+          {matches.length === 0 && (
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-orange-600 hover:bg-orange-700 text-white py-3 px-6 rounded-xl font-medium shadow-lg transition-colors"
+            >
+              Meer mensen zoeken
+            </button>
+          )}
         </div>
       </div>
 
