@@ -6,6 +6,7 @@ import StationSelectionScreen from '../components/StationSelectionScreen';
 import StationDetailScreen from '../components/StationDetailScreen';
 import SwipeScreen from '../components/SwipeScreen';
 import MatchesScreen from '../components/MatchesScreen';
+import NavigationBar from '../components/NavigationBar';
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState('onboarding'); // 'onboarding', 'profile', 'stations', 'station-detail', 'swipe', 'matches'
@@ -49,65 +50,156 @@ export default function Home() {
     setCurrentScreen('onboarding');
   };
 
+  // Nieuwe navigatie handler
+  const handleNavigate = (screenId) => {
+    setCurrentScreen(screenId);
+  };
+
+  // Wrapper functie om padding toe te voegen voor navigatie
+  const ScreenWrapper = ({ children }) => {
+    const shouldShowNav = currentScreen !== 'onboarding' && currentScreen !== 'station-detail';
+    return (
+      <div className={shouldShowNav ? 'pb-20' : ''}>
+        {children}
+      </div>
+    );
+  };
+
   if (currentScreen === 'onboarding') {
-    return <OnboardingScreen onComplete={handleOnboardingComplete} />;
+    return (
+      <>
+        <ScreenWrapper>
+          <OnboardingScreen onComplete={handleOnboardingComplete} />
+        </ScreenWrapper>
+        <NavigationBar 
+          currentScreen={currentScreen}
+          onNavigate={handleNavigate}
+          matches={matches}
+          selectedStations={selectedStations}
+        />
+      </>
+    );
   }
 
   if (currentScreen === 'profile') {
-    return <ProfileCreationScreen onComplete={handleProfileComplete} />;
+    return (
+      <>
+        <ScreenWrapper>
+          <ProfileCreationScreen onComplete={handleProfileComplete} />
+        </ScreenWrapper>
+        <NavigationBar 
+          currentScreen={currentScreen}
+          onNavigate={handleNavigate}
+          matches={matches}
+          selectedStations={selectedStations}
+        />
+      </>
+    );
   }
 
   if (currentScreen === 'stations') {
     return (
-      <StationSelectionScreen 
-        onComplete={handleStationsComplete}
-        onStationDetail={handleStationDetail}
-      />
+      <>
+        <ScreenWrapper>
+          <StationSelectionScreen 
+            onComplete={handleStationsComplete}
+            onStationDetail={handleStationDetail}
+          />
+        </ScreenWrapper>
+        <NavigationBar 
+          currentScreen={currentScreen}
+          onNavigate={handleNavigate}
+          matches={matches}
+          selectedStations={selectedStations}
+        />
+      </>
     );
   }
 
   if (currentScreen === 'station-detail' && detailStation) {
     return (
-      <StationDetailScreen 
-        station={detailStation}
-        onBack={handleBackFromDetail}
-      />
+      <>
+        <ScreenWrapper>
+          <StationDetailScreen 
+            station={detailStation}
+            onBack={handleBackFromDetail}
+          />
+        </ScreenWrapper>
+        <NavigationBar 
+          currentScreen={currentScreen}
+          onNavigate={handleNavigate}
+          matches={matches}
+          selectedStations={selectedStations}
+        />
+      </>
     );
   }
 
   if (currentScreen === 'swipe' && selectedStations) {
     return (
-      <SwipeScreen 
-        route={selectedStations}
-        onComplete={handleSwipeComplete}
-      />
+      <>
+        <ScreenWrapper>
+          <SwipeScreen 
+            route={selectedStations}
+            onComplete={handleSwipeComplete}
+          />
+        </ScreenWrapper>
+        <NavigationBar 
+          currentScreen={currentScreen}
+          onNavigate={handleNavigate}
+          matches={matches}
+          selectedStations={selectedStations}
+        />
+      </>
     );
   }
 
   if (currentScreen === 'matches') {
     return (
-      <MatchesScreen 
-        matches={matches}
-        route={selectedStations}
-        onNewRoute={handleNewRoute}
-      />
+      <>
+        <ScreenWrapper>
+          <MatchesScreen 
+            matches={matches}
+            route={selectedStations}
+            onNewRoute={handleNewRoute}
+          />
+        </ScreenWrapper>
+        <NavigationBar 
+          currentScreen={currentScreen}
+          onNavigate={handleNavigate}
+          matches={matches}
+          selectedStations={selectedStations}
+        />
+      </>
     );
   }
 
   // Fallback (zou niet moeten gebeuren)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center p-6">
-      <div className="text-center bg-white rounded-3xl shadow-xl p-10 max-w-sm w-full border border-orange-100">
-        <div className="text-6xl mb-6">🔄</div>
-        <h1 className="text-2xl font-bold mb-3 text-slate-800">Iets ging fout</h1>
-        <p className="text-slate-600 mb-6">Er is een probleem opgetreden.</p>
-        <button 
-          onClick={handleNewRoute}
-          className="bg-gradient-to-r from-orange-600 to-amber-600 text-white px-8 py-4 rounded-xl font-medium shadow-lg w-full"
-        >
-          Opnieuw beginnen
-        </button>
-      </div>
-    </div>
+    <>
+      <ScreenWrapper>
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+          <div className="text-center bg-white rounded-3xl shadow-lg p-10 max-w-sm w-full border border-slate-100">
+            <div className="text-6xl mb-6">🔄</div>
+            <h1 className="text-2xl font-bold mb-3 text-slate-800">Iets ging fout</h1>
+            <p className="text-slate-600 mb-6">Er is een probleem opgetreden.</p>
+            <div className="flex justify-center">
+              <button 
+                onClick={handleNewRoute}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-xl font-medium shadow-lg transition-colors"
+              >
+                Opnieuw beginnen
+              </button>
+            </div>
+          </div>
+        </div>
+      </ScreenWrapper>
+      <NavigationBar 
+        currentScreen={currentScreen}
+        onNavigate={handleNavigate}
+        matches={matches}
+        selectedStations={selectedStations}
+      />
+    </>
   );
 }

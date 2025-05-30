@@ -33,16 +33,16 @@ export default function StationDetailScreen({ station, onBack }) {
   const totalCapacity = bikesAvailable + slotsAvailable;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Header */}
-      <div className="flex items-center p-6 bg-white/80 backdrop-blur-sm">
+      <div className="flex items-center p-6 bg-white shadow-sm">
         <button 
           onClick={onBack}
-          className="mr-4 p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          className="mr-4 p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
         >
           ← Terug
         </button>
-        <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+        <div className="text-2xl font-bold text-orange-600">
           RideBuddy
         </div>
       </div>
@@ -62,8 +62,8 @@ export default function StationDetailScreen({ station, onBack }) {
             </p>
           </div>
 
-          {/* Status Overview */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100 mb-6">
+          {/* Status Overview Card */}
+          <div className="bg-white rounded-3xl p-6 shadow-lg border border-slate-100 mb-6">
             <div className="text-center mb-4">
               <div className={`text-2xl font-bold ${getStatusColor(bikesAvailable, totalCapacity)}`}>
                 {getStatusText(bikesAvailable, slotsAvailable)}
@@ -72,7 +72,7 @@ export default function StationDetailScreen({ station, onBack }) {
             
             {/* Visual Status Bar */}
             <div className="mb-4">
-              <div className="flex rounded-lg overflow-hidden h-4 bg-slate-200">
+              <div className="flex rounded-xl overflow-hidden h-4 bg-slate-200">
                 <div 
                   className="bg-green-500"
                   style={{ width: totalCapacity > 0 ? `${(bikesAvailable / totalCapacity) * 100}%` : '0%' }}
@@ -82,7 +82,7 @@ export default function StationDetailScreen({ station, onBack }) {
                   style={{ width: totalCapacity > 0 ? `${(slotsAvailable / totalCapacity) * 100}%` : '0%' }}
                 ></div>
               </div>
-              <div className="flex justify-between text-xs text-slate-500 mt-1">
+              <div className="flex justify-between text-xs text-slate-500 mt-2">
                 <span>Fietsen beschikbaar</span>
                 <span>Plaatsen beschikbaar</span>
               </div>
@@ -93,10 +93,10 @@ export default function StationDetailScreen({ station, onBack }) {
           <div className="space-y-4">
             
             {/* Available Bikes */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100">
+            <div className="bg-white rounded-3xl p-6 shadow-lg border border-slate-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center">
                     <span className="text-2xl">🚴</span>
                   </div>
                   <div>
@@ -114,10 +114,10 @@ export default function StationDetailScreen({ station, onBack }) {
             </div>
 
             {/* Available Slots */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100">
+            <div className="bg-white rounded-3xl p-6 shadow-lg border border-slate-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center">
                     <span className="text-2xl">🅿️</span>
                   </div>
                   <div>
@@ -135,10 +135,10 @@ export default function StationDetailScreen({ station, onBack }) {
             </div>
 
             {/* Total Capacity */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-orange-100">
+            <div className="bg-white rounded-3xl p-6 shadow-lg border border-slate-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <div className="w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center">
                     <span className="text-2xl">📊</span>
                   </div>
                   <div>
@@ -154,11 +154,10 @@ export default function StationDetailScreen({ station, onBack }) {
                 </div>
               </div>
             </div>
-
           </div>
 
           {/* Last Updated */}
-          <div className="text-center mt-6 text-sm text-slate-500">
+          <div className="text-center mt-6 text-sm text-slate-500 bg-slate-100 px-4 py-2 rounded-xl">
             Laatste update: {refreshTime.toLocaleTimeString('nl-NL')}
           </div>
 
@@ -166,13 +165,15 @@ export default function StationDetailScreen({ station, onBack }) {
       </div>
 
       {/* Action Button */}
-      <div className="p-6 bg-white/60 backdrop-blur-sm">
-        <button
-          onClick={onBack}
-          className="w-full bg-gradient-to-r from-orange-600 to-amber-600 text-white py-4 rounded-xl font-medium shadow-lg"
-        >
-          Terug naar stations
-        </button>
+      <div className="p-6 bg-white shadow-sm border-t border-slate-100">
+        <div className="flex justify-center">
+          <button
+            onClick={onBack}
+            className="bg-orange-600 hover:bg-orange-700 text-white py-4 px-8 rounded-xl font-medium shadow-lg transition-colors"
+          >
+            Terug naar stations
+          </button>
+        </div>
       </div>
     </div>
   );

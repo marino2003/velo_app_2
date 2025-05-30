@@ -54,15 +54,15 @@ export default function OnboardingScreen({ onComplete }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Header */}
-      <div className="flex justify-between items-center p-6 bg-white/80 backdrop-blur-sm">
-        <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+      <div className="flex justify-between items-center p-6 bg-white shadow-sm">
+        <div className="text-2xl font-bold text-orange-600">
           RideBuddy
         </div>
         <button 
           onClick={handleSkip}
-          className="text-slate-500 font-medium bg-orange-50 px-4 py-2 rounded-lg"
+          className="text-slate-500 font-medium bg-slate-100 px-4 py-2 rounded-xl hover:bg-slate-200 transition-colors"
         >
           Overslaan
         </button>
@@ -78,20 +78,20 @@ export default function OnboardingScreen({ onComplete }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col justify-center px-6">
-        <div className="bg-white rounded-2xl shadow-lg p-8 mx-auto max-w-sm border border-orange-100">
+        <div className="bg-white rounded-3xl shadow-lg p-8 mx-auto max-w-sm border border-slate-100">
           <OnboardingStep step={onboardingSteps[currentStep]} />
         </div>
       </div>
 
       {/* Navigation */}
-      <div className="p-6 flex justify-between items-center bg-white/60 backdrop-blur-sm">
+      <div className="p-6 flex justify-between items-center bg-white shadow-sm border-t border-slate-100">
         <button 
           onClick={handlePrevious}
           disabled={currentStep === 0}
-          className={`px-6 py-3 rounded-xl font-medium ${
+          className={`px-6 py-3 rounded-xl font-medium transition-colors ${
             currentStep === 0 
               ? 'text-slate-400 cursor-not-allowed' 
-              : 'text-slate-600 bg-white shadow-sm'
+              : 'text-slate-600 bg-slate-100 hover:bg-slate-200'
           }`}
         >
           Vorige
@@ -99,7 +99,7 @@ export default function OnboardingScreen({ onComplete }) {
 
         <button 
           onClick={handleNext}
-          className="bg-gradient-to-r from-orange-600 to-amber-600 text-white px-8 py-3 rounded-xl font-medium shadow-lg"
+          className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-xl font-medium transition-colors shadow-lg"
         >
           {currentStep === onboardingSteps.length - 1 ? 'Beginnen' : 'Volgende'}
         </button>

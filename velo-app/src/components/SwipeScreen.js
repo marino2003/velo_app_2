@@ -103,8 +103,8 @@ export default function SwipeScreen({ route, onComplete }) {
   // Als alle personen zijn doorlopen
   if (currentIndex >= DUMMY_CYCLISTS.length) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center p-6">
-        <div className="text-center bg-white rounded-3xl shadow-xl p-10 max-w-sm w-full border border-orange-100">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="text-center bg-white rounded-3xl shadow-lg p-10 max-w-sm w-full border border-slate-100">
           <div className="text-6xl mb-6">🎉</div>
           <h1 className="text-2xl font-bold mb-3 text-slate-800">Klaar met swipen!</h1>
           <p className="text-slate-600 mb-6">
@@ -115,40 +115,42 @@ export default function SwipeScreen({ route, onComplete }) {
             <div className="mb-6">
               <div className="flex flex-wrap justify-center gap-2 mb-4">
                 {matches.map((match) => (
-                  <div key={match.id} className="bg-green-100 px-3 py-1 rounded-full">
+                  <div key={match.id} className="bg-green-100 px-3 py-1 rounded-full border border-green-200">
                     <span className="text-lg">{match.avatar}</span>
-                    <span className="text-sm ml-1">{match.name}</span>
+                    <span className="text-sm ml-1 text-green-800">{match.name}</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          <button
-            onClick={handleComplete}
-            className="bg-gradient-to-r from-orange-600 to-amber-600 text-white px-8 py-4 rounded-xl font-medium shadow-lg w-full"
-          >
-            Bekijk mijn ritmaatjes
-          </button>
+          <div className="flex justify-center">
+            <button
+              onClick={handleComplete}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-xl font-medium shadow-lg transition-colors"
+            >
+              Bekijk mijn ritmaatjes
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Header */}
-      <div className="flex justify-between items-center p-6 bg-white/80 backdrop-blur-sm">
-        <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+      <div className="flex justify-between items-center p-6 bg-white shadow-sm">
+        <div className="text-2xl font-bold text-orange-600">
           RideBuddy
         </div>
-        <div className="text-sm text-slate-500 bg-orange-50 px-3 py-1 rounded-lg">
+        <div className="text-sm bg-slate-100 text-slate-600 px-3 py-1 rounded-xl">
           {currentIndex + 1} / {DUMMY_CYCLISTS.length}
         </div>
       </div>
 
       {/* Route info */}
-      <div className="px-6 py-4 bg-white/60">
+      <div className="px-6 py-4 bg-white border-b border-slate-100">
         <div className="text-center">
           <p className="text-sm text-slate-600">
             Zoekt ritmaatjes voor: <span className="font-medium">{route.departure.name}</span> → <span className="font-medium">{route.destination.name}</span>
@@ -161,7 +163,7 @@ export default function SwipeScreen({ route, onComplete }) {
         <div className="relative w-full max-w-sm">
           
           {/* Card */}
-          <div className={`bg-white rounded-3xl shadow-2xl border border-orange-100 transform transition-all duration-600 ${
+          <div className={`bg-white rounded-3xl shadow-lg border border-slate-100 transform transition-all duration-600 ${
             isAnimating ? (swipeDirection === 'left' ? '-translate-x-full rotate-12' : 'translate-x-full rotate-12') : ''
           } ${isAnimating ? 'opacity-0' : 'opacity-100'}`}>
             
@@ -193,7 +195,7 @@ export default function SwipeScreen({ route, onComplete }) {
                   <span className="text-lg">💫</span>
                   <div className="flex flex-wrap gap-1">
                     {currentCyclist.interests.map((interest, index) => (
-                      <span key={index} className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">
+                      <span key={index} className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-lg border border-orange-200">
                         {interest}
                       </span>
                     ))}
@@ -206,33 +208,29 @@ export default function SwipeScreen({ route, onComplete }) {
       </div>
 
       {/* Swipe Buttons */}
-      <div className="p-6 bg-white/60 backdrop-blur-sm">
+      <div className="p-6 bg-white shadow-sm border-t border-slate-100">
         <div className="flex justify-center space-x-8">
           <button
             onClick={() => handleSwipe('left')}
             disabled={isAnimating}
-            className="w-16 h-16 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl disabled:opacity-50"
+            className="w-16 h-16 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl disabled:opacity-50 transition-colors"
           >
             ✕
           </button>
           <button
             onClick={() => handleSwipe('right')}
             disabled={isAnimating}
-            className="w-16 h-16 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl disabled:opacity-50"
+            className="w-16 h-16 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl disabled:opacity-50 transition-colors"
           >
             ♡
           </button>
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-slate-500">
-          <span>Skip</span>
-          <span>Like</span>
         </div>
       </div>
 
       {/* Match Popup */}
       {showMatch && currentMatch && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white rounded-3xl p-8 text-center max-w-sm w-full">
+          <div className="bg-white rounded-3xl p-8 text-center max-w-sm w-full shadow-xl border border-slate-100">
             <div className="text-6xl mb-4">💕</div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Het is een match!</h2>
             <p className="text-slate-600 mb-6">
@@ -242,12 +240,14 @@ export default function SwipeScreen({ route, onComplete }) {
               <div className="text-4xl">{currentMatch.avatar}</div>
               <div className="text-4xl">🚴‍♂️</div>
             </div>
-            <button
-              onClick={handleMatchClose}
-              className="bg-gradient-to-r from-orange-600 to-amber-600 text-white px-8 py-3 rounded-xl font-medium w-full"
-            >
-              Doorgaan met swipen
-            </button>
+            <div className="flex justify-center">
+              <button
+                onClick={handleMatchClose}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-xl font-medium transition-colors"
+              >
+                Doorgaan met swipen
+              </button>
+            </div>
           </div>
         </div>
       )}
